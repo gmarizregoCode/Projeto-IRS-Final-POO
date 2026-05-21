@@ -1,4 +1,7 @@
-public class Escalao {
+import java.io.Serializable;
+
+public class Escalao implements Serializable {
+    private static final long serialVersionUID = 1L;
     private double limiteMinimo;
     private double limiteMaximo;
     private double taxaMarginal;

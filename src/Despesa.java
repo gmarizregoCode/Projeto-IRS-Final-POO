@@ -1,4 +1,7 @@
-public class Despesa implements Imprimivel {
+import java.io.Serializable;
+
+public class Despesa implements Imprimivel, Serializable {
+    private static final long serialVersionUID = 1L;
     private TipoDespesa tipoDespesa;
     private double valor;
     private String nifComerciante;

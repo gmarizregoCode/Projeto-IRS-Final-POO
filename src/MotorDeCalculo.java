@@ -1,12 +1,16 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class MotorDeCalculo implements Imprimivel{
+public class MotorDeCalculo {
     private List<Escalao> tabelaEscaloes;
     private final double deducaoCategA = 4104.00;
 
     public MotorDeCalculo(){
         this.tabelaEscaloes = new ArrayList<>();
+        // Adicionar 3 escalões fictícios para podermos testar a matemática
+        this.tabelaEscaloes.add(new Escalao(0, 10000, 0.145, 0));
+        this.tabelaEscaloes.add(new Escalao(10000, 20000, 0.23, 850));
+        this.tabelaEscaloes.add(new Escalao(20000, Double.MAX_VALUE, 0.35, 3250));
     }
     private double calcularRendimentoColetavel(Declaracao d){
         double totalB = d.somarRendimentosBrutos();

@@ -1,4 +1,7 @@
-public class Contribuinte implements Imprimivel{
+import java.io.Serializable;
+
+public class Contribuinte implements Imprimivel, Serializable {
+    private static final long serialVersionUID = 1L;
     private String nif;
     private String nome;
     private EstadoCivil estadoCivil;

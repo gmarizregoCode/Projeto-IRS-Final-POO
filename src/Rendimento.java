@@ -1,4 +1,7 @@
-public class Rendimento implements Imprimivel {
+import java.io.Serializable;
+
+public class Rendimento implements Imprimivel, Serializable {
+    private static final long serialVersionUID = 1L;
     private CategoriaRendimento categoriaRendimento;
     private double valorBruto;
     private double retencaoFonte;

@@ -1,6 +1,6 @@
 public enum TipoDespesa {
     SAUDE,
     EDUCACAO,
-    CARIDADE,
+    HABITACAO,
     GERAL
 }
