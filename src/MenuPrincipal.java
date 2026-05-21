@@ -224,6 +224,6 @@ public class MenuPrincipal {
         } else {
             System.out.printf("Tem imposto A PAGAR de: %.2f €%n", resultadoFinal);
         }
-        System.out.println("-----------------------------------------");
+        System.out.println("------------------------------------------");
     }
 }
