@@ -1,97 +1,108 @@
-import java.util.Scanner;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MenuPrincipal {
-    private MotorDeCalculo motorcal;
-    private Declaracao declarAtual;
-    private Scanner teclado;
 
-    public MenuPrincipal(){
-        this.teclado = new Scanner(System.in);
-        this.motorcal = new MotorDeCalculo();
+    private BaseDeDados bd;
+    private Contribuinte utilizadorLogado;
+    private Declaracao declarAtual;
+    private LeitorSeguro teclado;
+
+    public MenuPrincipal() {
+        this.teclado = new LeitorSeguro();
+
+
+        // 1. A MAGIA ACONTECE AQUI: Ao arrancar, o programa vai ao disco
+        // e carrega o HashMap inteiro com todos os utilizadores!
+        this.bd = GestorFicheiros.carregarBaseDeDados();
+        this.utilizadorLogado = null;
         this.declarAtual = null;
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         MenuPrincipal menu = new MenuPrincipal();
         menu.iniciar();
     }
-    public void iniciar(){
-        int opcao =-1;
+
+    public void iniciar() {
+        int opcao = -1;
         do {
-            System.out.println("\n=========================================");
-            System.out.println("    SISTEMA DE GESTÃO E SIMULAÇÃO DE IRS ");
-            System.out.println("=========================================");
-            System.out.println("1 - Registar Contribuinte e Criar Declaração");
-            System.out.println("2 - Adicionar Recibo de Vencimento (Rendimento)");
-            System.out.println("3 - Adicionar Fatura (e-Fatura Manual)");
-            System.out.println("4 - Simular IRS Final");
-            System.out.println("5 - Guardar Declaração no Disco");
-            System.out.println("6 - Carregar Declaração do Disco");
-            System.out.println("7 - Importar e-Fatura (Ficheiro XML)");
-            System.out.println("0 - Sair do Programa");
-            System.out.println("=========================================");
-            System.out.print("Escolha uma opção: ");
-
-            if (teclado.hasNextInt()) {
-                opcao = teclado.nextInt();
-                teclado.nextLine();
-
-                switch (opcao) {
-                    case 1:
-                        acaoRegistarContribuinte();
-                        break;
-                    case 2:
-                        acaoAdicionarRendimento();
-                        break;
-                    case 3:
-                        acaoAdicionarDespesa();
-                        break;
-                    case 4:
-                        acaoSimularIRS();
-                        break;
-                    case 5:
-                        acaoGuardarDeclaracao();
-                        break;
-                    case 6:
-                        acaoCarregarDeclaracao();
-                        break;
-                    case 7:
-                        acaoImportarXML();
-                        break;
-                    case 0:
-                        System.out.println("A sair do programa... Até à próxima!");
-                        break;
-                    default:
-                        System.out.println("Opção inválida! Tente novamente.");
-                }
+            // Se não houver ninguém logado, mostra o ecrã de Login
+            if (utilizadorLogado == null) {
+                opcao = mostrarMenuAutenticacao();
             } else {
-                System.out.println("Erro: Deve introduzir um número inteiro.");
-                teclado.nextLine();
+                // Se alguém fez login, mostra o menu do IRS
+                opcao = mostrarMenuSessao();
             }
-
         } while (opcao != 0);
+
+        // 2. SEGURANÇA: Quando o utilizador pressiona '0' para sair,
+        // o programa grava toda a Base de Dados no disco automaticamente.
+        GestorFicheiros.guardarBaseDeDados(bd);
+        System.out.println("A sair do programa... Dados guardados em segurança. Até à próxima!");
     }
+
+    // ==========================================
+    // ECRÃ 1: AUTENTICAÇÃO (LOGIN / REGISTO)
+    // ==========================================
+    private int mostrarMenuAutenticacao() {
+        System.out.println("\n=========================================");
+        System.out.println("    PORTAL DAS FINANÇAS - ACESSO");
+        System.out.println("=========================================");
+        System.out.println("1 - Iniciar Sessão (Login)");
+        System.out.println("2 - Registar Novo Contribuinte");
+        System.out.println("0 - Sair do Programa");
+
+        int opcao = teclado.lerInteiro("Escolha uma opção: ");
+
+        switch (opcao) {
+            case 1: acaoLogin(); break;
+            case 2: acaoRegistarContribuinte(); break;
+            case 0: break;
+            default: System.out.println("Opção inválida!");
+        }
+        return opcao;
+    }
+
+    private void acaoLogin() {
+        String nif = teclado.lerTexto("Introduza o NIF: ");
+        String senha = teclado.lerTexto("Introduza a Senha: ");
+
+        // Pede à Base de Dados para verificar se a pessoa existe e a senha está certa
+        Contribuinte c = bd.autenticar(nif, senha);
+
+        if (c != null) {
+            this.utilizadorLogado = c;
+            System.out.println("Login efetuado com sucesso! Bem-vindo(a), " + c.getNome());
+
+            // Procura a declaração de 2026 no histórico desta pessoa
+            this.declarAtual = null;
+            for (Declaracao d : c.getHistoricoDeclaracoes()) {
+                if (d.getAnoFiscal() == 2026) {
+                    this.declarAtual = d;
+                    break;
+                }
+            }
+            // Se a pessoa é nova e não tem declaração de 2026, cria uma automaticamente
+            if (this.declarAtual == null) {
+                this.declarAtual = new Declaracao(c, 2026);
+                c.adicionarDeclaracao(this.declarAtual);
+            }
+        } else {
+            System.out.println("Erro: NIF inexistente ou senha incorreta.");
+        }
+    }
+
     private void acaoRegistarContribuinte() {
-        System.out.println("\n--- REGISTAR CONTRIBUINTE ---");
-        System.out.print("Introduza o Nome Completo: ");
-        String nome = teclado.nextLine();
+        System.out.println("\n--- REGISTAR NOVO CONTRIBUINTE ---");
+        String nif = teclado.lerTexto("NIF: ");
+        String senha = teclado.lerTexto("Crie uma Senha: ");
+        String nome = teclado.lerTexto("Nome Completo: ");
+        int idade = teclado.lerInteiro("Idade: ");
+        int dependentes = teclado.lerInteiro("Número de Dependentes a Cargo: ");
 
-        System.out.print("Introduza o NIF: ");
-        String nif = teclado.nextLine();
-
-        System.out.print("Número de Dependentes a Cargo: ");
-        int dependentes = teclado.nextInt();
-        teclado.nextLine();
-
-        // Mini-menu para mapear o Enum EstadoCivil
-        System.out.println("Selecione o Estado Civil:");
-        System.out.println("1 - Solteiro | 2 - Casado | 3 - Divorciado | 4 - Viúvo");
-        System.out.print("Opção: ");
-        int escolhaCivil = teclado.nextInt();
-        teclado.nextLine(); // Limpa o buffer
+        System.out.println("Estado Civil (1-Solteiro | 2-Casado | 3-Divorciado | 4-Viúvo): ");
+        int escolhaCivil = teclado.lerInteiro("Opção: ");
 
         EstadoCivil estadoCivil;
         switch (escolhaCivil) {
@@ -101,162 +112,118 @@ public class MenuPrincipal {
             default: estadoCivil = EstadoCivil.SOLTEIRO;
         }
 
-        // Criação dos objetos encadeados
-        Contribuinte titular = new Contribuinte(nif, nome, estadoCivil, dependentes);
-        this.declarAtual = new Declaracao(titular, 2026); // Ano fiscal corrente
+        Contribuinte titular = new Contribuinte(nome, nif, idade, senha, estadoCivil, dependentes);
 
-        System.out.println("Perfil do Contribuinte e Declaração de 2026 criados com sucesso!");
+        try {
+            bd.registarContribuinte(titular);
+            System.out.println("Conta criada com sucesso! Pode agora fazer Login com o seu NIF.");
+            GestorFicheiros.guardarBaseDeDados(bd); // Salva imediatamente no disco
+
+        } catch (NifInvalidoException | NifDuplicadoException e) {
+            // Apanha QUALQUER UM dos teus dois erros customizados e mostra a mensagem vermelha!
+            System.out.println("Erro de Registo: " + e.getMessage());
+        }
     }
 
-    /**
-     * Opção 2: Adiciona um rendimento à lista da declaração ativa.
-     */
-    private void acaoAdicionarRendimento() {
-        if (validarDeclaracaoAtiva()) {
-            System.out.println("\n--- ADICIONAR RENDIMENTO ---");
+    // ==========================================
+    // ECRÃ 2: SESSÃO INICIADA (MENU DE IRS)
+    // ==========================================
+    private int mostrarMenuSessao() {
+        System.out.println("\n=========================================");
+        System.out.println("   BEM-VINDO, " + utilizadorLogado.getNome().toUpperCase());
+        System.out.println("=========================================");
+        System.out.println("1 - Adicionar Recibo de Vencimento (Rendimento)");
+        System.out.println("2 - Adicionar Fatura (e-Fatura Manual)");
+        System.out.println("3 - Importar e-Fatura (Ficheiro XML)");
+        System.out.println("4 - Simular IRS Final (2026)");
+        System.out.println("9 - Terminar Sessão (Logout)");
+        System.out.println("=========================================");
 
-            System.out.println("Selecione a Categoria do Rendimento:");
-            System.out.println("1 - Categoria A (Trabalho Dependente)");
-            System.out.println("2 - Categoria B (Trabalho Independente)");
-            System.out.println("3 - Categoria H (Pensões)");
-            System.out.print("Opção: ");
-            int escolhaCat = teclado.nextInt();
-            teclado.nextLine();
+        int opcao = teclado.lerInteiro("Escolha uma opção: ");
 
-            CategoriaRendimento categoria;
-            switch (escolhaCat) {
-                case 2: categoria = CategoriaRendimento.B; break;
-                case 3: categoria = CategoriaRendimento.H; break;
-                default: categoria = CategoriaRendimento.A;
-            }
-
-            System.out.print("Introduza o Valor Bruto Total (€): ");
-            double valorBruto = teclado.nextDouble();
-
-            System.out.print("Introduza o Valor Retido na Fonte (€): ");
-            double retencao = teclado.nextDouble();
-
-            System.out.print("Introduza os Descontos para a Segurança Social (€): ");
-            double segSocial = teclado.nextDouble();
-            teclado.nextLine();
-
-            Rendimento rendimento;
-            switch (escolhaCat) {
-                case 2:
-                    rendimento = new RendimentoCategoriaB(valorBruto, retencao, segSocial);
-                    break;
-                case 3:
-                    rendimento = new RendimentoCategoriaH(valorBruto, retencao, segSocial);
-                    break;
-                default:
-                    rendimento = new RendimentoCategoriaA(valorBruto, retencao, segSocial);
-            }
-            declarAtual.adicionarRendimento(rendimento);
-
-            System.out.println("Rendimento registado e acoplado à declaração!");
+        switch (opcao) {
+            case 1: acaoAdicionarRendimento(); break;
+            case 2: acaoAdicionarDespesa(); break;
+            case 3: acaoImportarXML(); break;
+            case 4: acaoSimularIRS(); break;
+            case 9:
+                System.out.println("A encerrar sessão de " + utilizadorLogado.getNome() + "...");
+                this.utilizadorLogado = null;
+                this.declarAtual = null;
+                break;
+            default: System.out.println("Opção inválida!");
         }
+        // Retornamos -1 para evitar que o programa saia (só sai se for 0 no menu principal)
+        return -1;
+    }
+
+    private void acaoAdicionarRendimento() {
+        System.out.println("\n--- ADICIONAR RENDIMENTO ---");
+        System.out.println("Categoria (1-Cat A | 2-Cat B | 3-Cat H): ");
+        int escolhaCat = teclado.lerInteiro("");
+
+        double valorBruto = teclado.lerDouble("Valor Bruto Total (€): ");
+        double retencao = teclado.lerDouble("Valor Retido na Fonte (€): ");
+        double segSocial = teclado.lerDouble("Descontos para a Segurança Social (€): ");
+
+        Rendimento rendimento;
+        switch (escolhaCat) {
+            case 2: rendimento = new RendimentoCategoriaB(valorBruto, retencao, segSocial); break;
+            case 3: rendimento = new RendimentoCategoriaH(valorBruto, retencao, segSocial); break;
+            default: rendimento = new RendimentoCategoriaA(valorBruto, retencao, segSocial);
+        }
+        declarAtual.adicionarRendimento(rendimento);
+        System.out.println("Rendimento acoplado à sua declaração!");
     }
 
     private void acaoAdicionarDespesa() {
-        if (validarDeclaracaoAtiva()) {
-            System.out.println("\n--- e-FATURA (Inserção Manual) ---");
-            System.out.print("Introduza o NIF do Comerciante: ");
-            String nifComerciante = teclado.nextLine();
+        System.out.println("\n--- INSERIR FATURA MANUAL ---");
+        String nifComerciante = teclado.lerTexto("NIF do Comerciante: ");
+        double valor = teclado.lerDouble("Valor Total (€): ");
 
-            System.out.print("Introduza o Valor Total da Fatura (€): ");
-            double valor = teclado.nextDouble();
-            teclado.nextLine(); // Limpa o buffer
+        System.out.println("Tipo (1-Saúde | 2-Educação | 3-Habitação | 4-Geral): ");
+        int escolhaTipo = teclado.lerInteiro("");
 
-            System.out.println("Selecione o Tipo de Despesa:");
-            System.out.println("1 - Saúde | 2 - Educação | 3 - Habitação | 4 - Geral / Outros");
-            System.out.print("Opção: ");
-            int escolhaTipo = teclado.nextInt();
-            teclado.nextLine();
-
-            TipoDespesa tipo;
-            switch (escolhaTipo) {
-                case 1: tipo = TipoDespesa.SAUDE; break;
-                case 2: tipo = TipoDespesa.EDUCACAO; break;
-                case 3: tipo = TipoDespesa.HABITACAO; break;
-                default: tipo = TipoDespesa.GERAL;
-            }
-
-            Despesa despesa = new Despesa(tipo, valor, nifComerciante);
-            declarAtual.adicionarDespesas(despesa);
-
-            System.out.println(" Fatura registada e validada no e-Fatura local!");
+        TipoDespesa tipo;
+        switch (escolhaTipo) {
+            case 1: tipo = TipoDespesa.SAUDE; break;
+            case 2: tipo = TipoDespesa.EDUCACAO; break;
+            case 3: tipo = TipoDespesa.HABITACAO; break;
+            default: tipo = TipoDespesa.GERAL;
         }
-    }
 
-    /**
-     * Opção 4: Comunica com o MotorDeCalculo e exibe o veredicto.
-     */
-    private void acaoSimularIRS() {
-        if (validarDeclaracaoAtiva()) {
-            System.out.println("\n--- SIMULAÇÃO FINAL DE IRS ---");
-
-            // Invoca o Maestro da Fase 2
-            double resultadoFinal = motorcal.calcularResultadoFinal(declarAtual);
-
-            System.out.println("-----------------------------------------");
-            System.out.println("Contribuinte: " + declarAtual.getContribuinte().getNome());
-            System.out.println("NIF: " + declarAtual.getContribuinte().getNif());
-            System.out.println("-----------------------------------------");
-
-            if (resultadoFinal < 0) {
-                // Se der negativo, o Estado reembolsa o cidadão
-                double reembolso = Math.abs(resultadoFinal);
-                System.out.printf("CÁLCULO TERMINADO: Tem direito a REEMBOLSO.%n");
-                System.out.printf("Valor a receber do Estado: %.2f €%n", reembolso);
-            } else {
-                System.out.printf("CÁLCULO TERMINADO: Tem imposto em falta.%n");
-                System.out.printf("Valor a pagar ao Estado: %.2f €%n", resultadoFinal);
-            }
-            System.out.println("-----------------------------------------");
-        }
-    }
-
-
-    private boolean validarDeclaracaoAtiva() {
-        if (this.declarAtual == null) {
-            System.out.println(" Erro: Deve primeiro registar o Contribuinte (Opção 1) antes de prosseguir.");
-            return false;
-        }
-        return true;
-    }
-    private void acaoGuardarDeclaracao() {
-        if (validarDeclaracaoAtiva()) {
-            boolean sucesso = GestorFicheiros.guardarDeclaracao(declarAtual);
-            if (sucesso) {
-                System.out.println("Declaração e todas as faturas guardadas com sucesso no disco!");
-            }
-        }
-    }
-
-    private void acaoCarregarDeclaracao() {
-        Declaracao carregada = GestorFicheiros.carregarDeclaracao();
-        if (carregada != null) {
-            this.declarAtual = carregada;
-            System.out.println("Bem-vindo de volta, " + declarAtual.getContribuinte().getNome() + "! Dados carregados.");
-        } else {
-            System.out.println("Nenhum dado encontrado. Tem a certeza que já guardou alguma declaração?");
-        }
+        Despesa despesa = new Despesa(tipo, valor, nifComerciante);
+        declarAtual.adicionarDespesas(despesa);
+        System.out.println("Fatura registada com sucesso!");
     }
 
     private void acaoImportarXML() {
-        if (validarDeclaracaoAtiva()) {
-            System.out.println("\n--- A INICIAR IMPORTAÇÃO DO E-FATURA ---");
+        System.out.println("\n--- A INICIAR IMPORTAÇÃO DO E-FATURA ---");
+        List<Despesa> faturasLidas = ImportadorXML.importarFaturas("faturas.xml");
 
-            List<Despesa> faturasLidas = ImportadorXML.importarFaturas("faturas.xml");
-
-            if (faturasLidas.isEmpty()) {
-                System.out.println("Não foi possível importar faturas. Verifique se o ficheiro 'faturas.xml' existe e está correto.");
-            } else {
-                for (Despesa d : faturasLidas) {
-                    declarAtual.adicionarDespesas(d);
-                }
-                System.out.println("SUCESSO: Foram importadas e validadas " + faturasLidas.size() + " faturas!");
+        if (faturasLidas.isEmpty()) {
+            System.out.println("Não foi possível importar faturas.");
+        } else {
+            for (Despesa d : faturasLidas) {
+                declarAtual.adicionarDespesas(d);
             }
+            System.out.println("SUCESSO: " + faturasLidas.size() + " faturas associadas ao seu NIF!");
         }
+    }
+
+    private void acaoSimularIRS() {
+        System.out.println("\n--- SIMULAÇÃO DE IRS: " + utilizadorLogado.getNome() + " ---");
+        // 1. A Fábrica analisa o Contribuinte e devolve o motor de cálculo perfeito para ele!
+        EstrategiaFiscal motorDeCalculo = EstrategiaFactory.criarEstrategia(utilizadorLogado);
+
+        // 2. Usamos o motor (seja ele o Jovem ou o Normal) para calcular o imposto final
+        double resultadoFinal = motorDeCalculo.calcularImpostoFinal(declarAtual);
+
+        if (resultadoFinal < 0) {
+            System.out.printf("Tem direito a REEMBOLSO de: %.2f €%n", Math.abs(resultadoFinal));
+        } else {
+            System.out.printf("Tem imposto A PAGAR de: %.2f €%n", resultadoFinal);
+        }
+        System.out.println("-----------------------------------------");
     }
 }

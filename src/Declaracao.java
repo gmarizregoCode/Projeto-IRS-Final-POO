@@ -1,7 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.Serializable;
 
 public class Declaracao implements Imprimivel, Serializable {
     private static final long serialVersionUID = 1L;

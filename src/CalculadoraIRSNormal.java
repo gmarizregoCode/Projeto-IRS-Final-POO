@@ -1,11 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class MotorDeCalculo {
+public class CalculadoraIRSNormal implements EstrategiaFiscal {
     private List<Escalao> tabelaEscaloes;
     private final double deducaoCategA = 4104.00;
 
-    public MotorDeCalculo(){
+    public CalculadoraIRSNormal(){
         this.tabelaEscaloes = new ArrayList<>();
         // Adicionar 3 escalões fictícios para podermos testar a matemática
         this.tabelaEscaloes.add(new Escalao(0, 10000, 0.145, 0));
@@ -36,8 +36,8 @@ public class MotorDeCalculo {
         double vfinal = m-tab;
         return vfinal;
     }
-
-    public double calcularResultadoFinal(Declaracao d){
+    @Override
+    public double calcularImpostoFinal(Declaracao d){
         double rc = calcularRendimentoColetavel(d);
 
         // Proteção: Se RC for 0 ou negativo, devolvemos todo o imposto retido

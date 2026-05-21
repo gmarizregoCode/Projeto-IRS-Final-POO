@@ -1,18 +1,28 @@
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Contribuinte implements Imprimivel, Serializable {
     private static final long serialVersionUID = 1L;
     private String nif;
     private String nome;
+    private int idade;
     private EstadoCivil estadoCivil;
     private int dependentes;
+    private String senha;
+    private List<Declaracao> historicoDeclaracoes;
 
-    public Contribuinte(String nif, String nome, EstadoCivil estadoCivil, int dependentes){
-        this.nif = nif;
+    public Contribuinte(String nome, String nif, int idade, String senha, EstadoCivil estadoCivil, int dependentes) {
         this.nome = nome;
+        this.nif = nif;
+        this.senha = senha;
+        this.idade = idade;
         this.estadoCivil = estadoCivil;
         this.dependentes = dependentes;
+        this.historicoDeclaracoes = new ArrayList<>(); // Inicializa a memória da pessoa
     }
+
     public String getNif(){ return nif; }
 
     public String getNome(){ return nome; }
@@ -23,7 +33,11 @@ public class Contribuinte implements Imprimivel, Serializable {
 
     public int getDependentes(){ return dependentes; }
 
+    public int getIdade() { return idade; }
+
     public void setDependentes(int dependentes){ this.dependentes = dependentes; }
+
+    public String getSenha() { return senha; }
 
     public void setNome(String nome){ this.nome = nome; }
 
@@ -50,5 +64,13 @@ public class Contribuinte implements Imprimivel, Serializable {
         if (!(obj instanceof Contribuinte)) return false;
         Contribuinte other = (Contribuinte) obj;
         return nif != null && nif.equals(other.nif);
+    }
+
+    public void adicionarDeclaracao(Declaracao d) {
+        this.historicoDeclaracoes.add(d);
+    }
+
+    public List<Declaracao> getHistoricoDeclaracoes() {
+        return Collections.unmodifiableList(historicoDeclaracoes);
     }
 }
