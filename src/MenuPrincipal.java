@@ -1,4 +1,7 @@
 import java.util.Scanner;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MenuPrincipal {
     private MotorDeCalculo motorcal;
@@ -27,6 +30,7 @@ public class MenuPrincipal {
             System.out.println("4 - Simular IRS Final");
             System.out.println("5 - Guardar Declaração no Disco");
             System.out.println("6 - Carregar Declaração do Disco");
+            System.out.println("7 - Importar e-Fatura (Ficheiro XML)");
             System.out.println("0 - Sair do Programa");
             System.out.println("=========================================");
             System.out.print("Escolha uma opção: ");
@@ -53,6 +57,9 @@ public class MenuPrincipal {
                         break;
                     case 6:
                         acaoCarregarDeclaracao();
+                        break;
+                    case 7:
+                        acaoImportarXML();
                         break;
                     case 0:
                         System.out.println("A sair do programa... Até à próxima!");
@@ -119,7 +126,7 @@ public class MenuPrincipal {
             CategoriaRendimento categoria;
             switch (escolhaCat) {
                 case 2: categoria = CategoriaRendimento.B; break;
-                case 3: categoria = CategoriaRendimento.C; break;
+                case 3: categoria = CategoriaRendimento.H; break;
                 default: categoria = CategoriaRendimento.A;
             }
 
@@ -133,7 +140,17 @@ public class MenuPrincipal {
             double segSocial = teclado.nextDouble();
             teclado.nextLine();
 
-            Rendimento rendimento = new Rendimento(categoria, valorBruto, retencao, segSocial);
+            Rendimento rendimento;
+            switch (escolhaCat) {
+                case 2:
+                    rendimento = new RendimentoCategoriaB(valorBruto, retencao, segSocial);
+                    break;
+                case 3:
+                    rendimento = new RendimentoCategoriaH(valorBruto, retencao, segSocial);
+                    break;
+                default:
+                    rendimento = new RendimentoCategoriaA(valorBruto, retencao, segSocial);
+            }
             declarAtual.adicionarRendimento(rendimento);
 
             System.out.println("Rendimento registado e acoplado à declaração!");
@@ -223,6 +240,23 @@ public class MenuPrincipal {
             System.out.println("Bem-vindo de volta, " + declarAtual.getContribuinte().getNome() + "! Dados carregados.");
         } else {
             System.out.println("Nenhum dado encontrado. Tem a certeza que já guardou alguma declaração?");
+        }
+    }
+
+    private void acaoImportarXML() {
+        if (validarDeclaracaoAtiva()) {
+            System.out.println("\n--- A INICIAR IMPORTAÇÃO DO E-FATURA ---");
+
+            List<Despesa> faturasLidas = ImportadorXML.importarFaturas("faturas.xml");
+
+            if (faturasLidas.isEmpty()) {
+                System.out.println("Não foi possível importar faturas. Verifique se o ficheiro 'faturas.xml' existe e está correto.");
+            } else {
+                for (Despesa d : faturasLidas) {
+                    declarAtual.adicionarDespesas(d);
+                }
+                System.out.println("SUCESSO: Foram importadas e validadas " + faturasLidas.size() + " faturas!");
+            }
         }
     }
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE efatura SYSTEM "faturas.dtd">
+<efatura>
+    <fatura>
+        <nif_comerciante>500200300</nif_comerciante>
+        <valor>45.50</valor>
+        <tipo>SAUDE</tipo>
+    </fatura>
+    <fatura>
+        <nif_comerciante>501401501</nif_comerciante>
+        <valor>120.00</valor>
+        <tipo>EDUCACAO</tipo>
+    </fatura>
+    <fatura>
+        <nif_comerciante>502999888</nif_comerciante>
+        <valor>15.30</valor>
+        <tipo>GERAL</tipo>
+    </fatura>
+</efatura>

@@ -1,0 +1,5 @@
+<!ELEMENT efatura (fatura+)>
+        <!ELEMENT fatura (nif_comerciante, valor, tipo)>
+        <!ELEMENT nif_comerciante (#PCDATA)>
+        <!ELEMENT valor (#PCDATA)>
+        <!ELEMENT tipo (#PCDATA)>

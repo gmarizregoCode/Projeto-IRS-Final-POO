@@ -18,11 +18,11 @@ public class Despesa implements Imprimivel, Serializable {
 
     public String getNifComerciante() { return nifComerciante; }
 
-    public void setTipoDespesa() { this.tipoDespesa = tipoDespesa; }
+    public void setTipoDespesa(TipoDespesa tipoDespesa) { this.tipoDespesa = tipoDespesa; }
 
-    public void setValor() { this.valor = valor; }
+    public void setValor(double valor) { this.valor = valor; }
 
-    public void setNifComerciante() { this.nifComerciante = nifComerciante; }
+    public void setNifComerciante(String nifComerciante) { this.nifComerciante = nifComerciante; }
 
     @Override
     public void print() {

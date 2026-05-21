@@ -1,5 +1,3 @@
 public enum CategoriaRendimento {
-    A,
-    B,
-    C
+    A, B, H
 }
