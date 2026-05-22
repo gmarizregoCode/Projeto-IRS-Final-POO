@@ -1,6 +1,7 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class Declaracao implements Imprimivel, Serializable {
     private static final long serialVersionUID = 1L;
@@ -18,10 +19,12 @@ public class Declaracao implements Imprimivel, Serializable {
 
     public Contribuinte getContribuinte(){ return contribuinte; }
 
-    public List<Rendimento> getRendimentos(){ return rendimentos; }
-
-    public List<Despesa> getDespesas(){ return despesas; }
-
+    public List<Rendimento> getRendimentos() {
+        return Collections.unmodifiableList(rendimentos);
+    }
+    public List<Despesa> getDespesas() {
+        return Collections.unmodifiableList(despesas);
+    }
     public int getAnoFiscal(){ return anoFiscal; }
 
     public void setContribuinte(Contribuinte contribuinte) { this.contribuinte = contribuinte; }

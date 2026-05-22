@@ -7,6 +7,6 @@ public class RendimentoCategoriaA extends Rendimento {
 
     @Override
     public double getRendimentoColetavel() {
-        return getValorBruto() - DEDUCAO_FIXA;
+        return Math.max(0, getValorBruto() - DEDUCAO_FIXA);
     }
 }

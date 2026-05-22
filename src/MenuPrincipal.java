@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.time.Year;
 import java.util.List;
 
 public class MenuPrincipal {
@@ -68,24 +68,25 @@ public class MenuPrincipal {
         String nif = teclado.lerTexto("Introduza o NIF: ");
         String senha = teclado.lerTexto("Introduza a Senha: ");
 
-        // Pede à Base de Dados para verificar se a pessoa existe e a senha está certa
         Contribuinte c = bd.autenticar(nif, senha);
 
         if (c != null) {
             this.utilizadorLogado = c;
             System.out.println("Login efetuado com sucesso! Bem-vindo(a), " + c.getNome());
 
-            // Procura a declaração de 2026 no histórico desta pessoa
+            int anoAtual = Year.now().getValue();
+
+            // Procura a declaração do ano atual no histórico desta pessoa
             this.declarAtual = null;
             for (Declaracao d : c.getHistoricoDeclaracoes()) {
-                if (d.getAnoFiscal() == 2026) {
+                if (d.getAnoFiscal() == anoAtual) {
                     this.declarAtual = d;
                     break;
                 }
             }
-            // Se a pessoa é nova e não tem declaração de 2026, cria uma automaticamente
+            // Se a pessoa é nova e não tem declaração do ano atual, cria uma automaticamente
             if (this.declarAtual == null) {
-                this.declarAtual = new Declaracao(c, 2026);
+                this.declarAtual = new Declaracao(c, anoAtual);
                 c.adicionarDeclaracao(this.declarAtual);
             }
         } else {
@@ -129,13 +130,14 @@ public class MenuPrincipal {
     // ECRÃ 2: SESSÃO INICIADA (MENU DE IRS)
     // ==========================================
     private int mostrarMenuSessao() {
+        int anoAtual = Year.now().getValue();
         System.out.println("\n=========================================");
         System.out.println("   BEM-VINDO, " + utilizadorLogado.getNome().toUpperCase());
         System.out.println("=========================================");
         System.out.println("1 - Adicionar Recibo de Vencimento (Rendimento)");
         System.out.println("2 - Adicionar Fatura (e-Fatura Manual)");
         System.out.println("3 - Importar e-Fatura (Ficheiro XML)");
-        System.out.println("4 - Simular IRS Final (2026)");
+        System.out.println("4 - Simular IRS Final (" + anoAtual + ")");
         System.out.println("9 - Terminar Sessão (Logout)");
         System.out.println("=========================================");
 
@@ -224,6 +226,6 @@ public class MenuPrincipal {
         } else {
             System.out.printf("Tem imposto A PAGAR de: %.2f €%n", resultadoFinal);
         }
-        System.out.println("------------------------------------------");
+        System.out.println("-----------------------------------------");
     }
 }
