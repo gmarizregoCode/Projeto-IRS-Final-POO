@@ -1,9 +1,21 @@
+package tps.tp4.ui;
+
+import tps.tp4.calculo.EstrategiaFactory;
+import tps.tp4.calculo.EstrategiaFiscal;
+import tps.tp4.excecoes.DeclaracaoJaSubmetidaException;
+import tps.tp4.excecoes.NifDuplicadoException;
+import tps.tp4.excecoes.NifInvalidoException;
+import tps.tp4.io.ExportadorXML;
+import tps.tp4.io.GestorFicheiros;
+import tps.tp4.io.ImportadorXML;
+import tps.tp4.modelo.*;
+
 import java.time.Year;
 import java.util.List;
 
 public class MenuPrincipal {
 
-    private BaseDeDados bd;
+    private static BaseDeDados bd;
     private Contribuinte utilizadorLogado;
     private Declaracao declarAtual;
     private LeitorSeguro teclado;
@@ -21,6 +33,12 @@ public class MenuPrincipal {
 
     public static void main(String[] args) {
         MenuPrincipal menu = new MenuPrincipal();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n[Sistema] A guardar dados...");
+            GestorFicheiros.guardarBaseDeDados(bd);
+        }));
+
         menu.iniciar();
     }
 
@@ -103,7 +121,7 @@ public class MenuPrincipal {
         int dependentes = teclado.lerInteiro("Número de Dependentes a Cargo: ");
 
         System.out.println("Estado Civil (1-Solteiro | 2-Casado | 3-Divorciado | 4-Viúvo): ");
-        int escolhaCivil = teclado.lerInteiro("Opção: ");
+        int escolhaCivil = teclado.lerInteiroComLimites("Opção: ", 1, 4);
 
         EstadoCivil estadoCivil;
         switch (escolhaCivil) {
@@ -139,6 +157,7 @@ public class MenuPrincipal {
         System.out.println("3 - Importar e-Fatura (Ficheiro XML)");
         System.out.println("4 - Simular IRS Final (" + anoAtual + ")");
         System.out.println("5 - Submeter Declaração (Bloquear Edição)");
+        System.out.println("6 - Ver Histórico de Declarações");
         System.out.println("9 - Terminar Sessão (Logout)");
         System.out.println("=========================================");
 
@@ -150,6 +169,7 @@ public class MenuPrincipal {
             case 3: acaoImportarXML(); break;
             case 4: acaoSimularIRS(); break;
             case 5: acaoSubmeterDeclaracao(); break;
+            case 6: acaoVerHistorico(); break;
             case 9:
                 System.out.println("A encerrar sessão de " + utilizadorLogado.getNome() + "...");
                 this.utilizadorLogado = null;
@@ -165,7 +185,7 @@ public class MenuPrincipal {
         try {
             System.out.println("\n--- ADICIONAR RENDIMENTO ---");
             System.out.println("Categoria (1-Cat A | 2-Cat B | 3-Cat H): ");
-            int escolhaCat = teclado.lerInteiro("");
+            int escolhaCat = teclado.lerInteiroComLimites("Opção: ", 1, 3);
 
             double valorBruto = teclado.lerDouble("Valor Bruto Total (€): ");
             double retencao = teclado.lerDouble("Valor Retido na Fonte (€): ");
@@ -180,7 +200,7 @@ public class MenuPrincipal {
             declarAtual.adicionarRendimento(rendimento);
             System.out.println("Rendimento acoplado à sua declaração!");
         } catch (DeclaracaoJaSubmetidaException e) {
-            System.out.println("❌ Erro: " + e.getMessage());
+            System.out.println("Erro: " + e.getMessage());
         }
     }
 
@@ -191,7 +211,7 @@ public class MenuPrincipal {
             double valor = teclado.lerDouble("Valor Total (€): ");
 
             System.out.println("Tipo (1-Saúde | 2-Educação | 3-Habitação | 4-Geral): ");
-            int escolhaTipo = teclado.lerInteiro("");
+            int escolhaTipo = teclado.lerInteiroComLimites("Opção: ", 1, 4);
 
             TipoDespesa tipo;
             switch (escolhaTipo) {
@@ -205,14 +225,14 @@ public class MenuPrincipal {
             declarAtual.adicionarDespesas(despesa);
             System.out.println("Fatura registada com sucesso!");
         } catch (DeclaracaoJaSubmetidaException e) {
-            System.out.println("❌ Erro: " + e.getMessage());
+            System.out.println("Erro: " + e.getMessage());
         }
     }
 
     private void acaoImportarXML() {
         try {
             System.out.println("\n--- A INICIAR IMPORTAÇÃO DO E-FATURA ---");
-            String caminho = teclado.lerTexto("Introduza o caminho para o ficheiro XML das suas faturas: ");
+            String caminho = teclado.lerTexto("Caminho do ficheiro: ");
             List<Despesa> faturasLidas = ImportadorXML.importarFaturas(caminho);
 
             if (faturasLidas.isEmpty()) {
@@ -224,7 +244,7 @@ public class MenuPrincipal {
                 System.out.println("SUCESSO: " + faturasLidas.size() + " faturas associadas ao seu NIF!");
             }
         } catch (DeclaracaoJaSubmetidaException e) {
-            System.out.println("❌ Erro: " + e.getMessage());
+            System.out.println("Erro: " + e.getMessage());
         }
     }
 
@@ -239,10 +259,29 @@ public class MenuPrincipal {
 
         if (conf == 1) {
             declarAtual.submeterDeclaracao();
-            System.out.println("✅ Declaração submetida com sucesso! O seu estado agora é 'SUBMETIDA'.");
+            System.out.println("Declaração submetida com sucesso! O seu estado agora é 'SUBMETIDA'.");
         } else {
             System.out.println("Operação cancelada.");
         }
+    }
+
+    private void acaoVerHistorico() {
+        System.out.println("\n--- HISTÓRICO DE DECLARAÇÕES DE " + utilizadorLogado.getNome().toUpperCase() + " ---");
+        List<Declaracao> historico = utilizadorLogado.getHistoricoDeclaracoes();
+
+        if (historico.isEmpty()) {
+            System.out.println("Não existem declarações no seu histórico.");
+            return;
+        }
+
+        for (Declaracao d : historico) {
+            System.out.println("-----------------------------------------");
+            System.out.println("Ano Fiscal: " + d.getAnoFiscal());
+            System.out.println("Estado: " + d.getEstado());
+            System.out.println("Nº de Rendimentos: " + d.getRendimentos().size());
+            System.out.println("Nº de Despesas: " + d.getDespesas().size());
+        }
+        System.out.println("-----------------------------------------");
     }
 
     private void acaoSimularIRS() {
@@ -259,5 +298,10 @@ public class MenuPrincipal {
             System.out.printf("Tem imposto A PAGAR de: %.2f €%n", resultadoFinal);
         }
         System.out.println("-----------------------------------------");
+
+        int exportar = teclado.lerInteiroComLimites("Deseja exportar a nota de liquidação (1-Sim | 2-Não)? ", 1, 2);
+        if (exportar == 1) {
+            ExportadorXML.exportarNotaLiquidacao(utilizadorLogado, declarAtual, resultadoFinal);
+        }
     }
 }

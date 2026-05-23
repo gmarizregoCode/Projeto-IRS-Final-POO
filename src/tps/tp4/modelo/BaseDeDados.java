@@ -1,3 +1,8 @@
+package tps.tp4.modelo;
+
+import tps.tp4.excecoes.NifDuplicadoException;
+import tps.tp4.excecoes.NifInvalidoException;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;

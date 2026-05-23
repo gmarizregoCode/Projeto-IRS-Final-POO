@@ -1,3 +1,7 @@
+package tps.tp4.calculo;
+
+import tps.tp4.modelo.Declaracao;
+
 public class CalculadoraIRSJovem implements EstrategiaFiscal {
 
     // Composição: A calculadora jovem "tem uma" calculadora normal lá dentro

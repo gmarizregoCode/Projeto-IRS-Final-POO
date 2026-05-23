@@ -1,4 +1,7 @@
+package tps.tp4.modelo;
 
+import tps.tp4.excecoes.DeclaracaoJaSubmetidaException;
+import tps.tp4.ui.Imprimivel;
 
 import java.io.Serializable;
 import java.util.ArrayList;

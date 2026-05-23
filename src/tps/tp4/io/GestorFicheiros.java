@@ -1,3 +1,7 @@
+package tps.tp4.io;
+
+import tps.tp4.modelo.BaseDeDados;
+
 import java.io.*;
 
 public class GestorFicheiros {

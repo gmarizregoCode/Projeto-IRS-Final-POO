@@ -1,3 +1,5 @@
+package tps.tp4.ui;
+
 import java.util.Scanner;
 
 public class LeitorSeguro {

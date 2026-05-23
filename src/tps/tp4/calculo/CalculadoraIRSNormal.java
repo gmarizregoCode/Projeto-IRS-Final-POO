@@ -1,3 +1,10 @@
+package tps.tp4.calculo;
+
+import tps.tp4.modelo.Declaracao;
+import tps.tp4.modelo.Despesa;
+import tps.tp4.modelo.Escalao;
+import tps.tp4.modelo.Rendimento;
+
 import java.util.ArrayList;
 import java.util.List;
 

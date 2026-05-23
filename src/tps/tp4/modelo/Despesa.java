@@ -1,3 +1,7 @@
+package tps.tp4.modelo;
+
+import tps.tp4.ui.Imprimivel;
+
 import java.io.Serializable;
 
 public class Despesa implements Imprimivel, Serializable {

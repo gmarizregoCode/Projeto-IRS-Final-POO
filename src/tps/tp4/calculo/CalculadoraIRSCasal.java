@@ -1,3 +1,7 @@
+package tps.tp4.calculo;
+
+import tps.tp4.modelo.Declaracao;
+
 public class CalculadoraIRSCasal implements EstrategiaFiscal {
 
     private final EstrategiaFiscal calculadoraBase = new CalculadoraIRSNormal();

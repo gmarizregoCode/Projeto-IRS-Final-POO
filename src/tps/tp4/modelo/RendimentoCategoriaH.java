@@ -1,3 +1,5 @@
+package tps.tp4.modelo;
+
 public class RendimentoCategoriaH extends Rendimento {
     private static final double DEDUCAO_FIXA = 4462.15;
 

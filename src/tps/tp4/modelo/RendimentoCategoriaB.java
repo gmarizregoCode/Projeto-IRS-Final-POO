@@ -1,3 +1,5 @@
+package tps.tp4.modelo;
+
 public class RendimentoCategoriaB extends Rendimento {
     public RendimentoCategoriaB(double valorBruto, double retencaoFonte, double segurancaSocial) {
         super(CategoriaRendimento.B, valorBruto, retencaoFonte, segurancaSocial);

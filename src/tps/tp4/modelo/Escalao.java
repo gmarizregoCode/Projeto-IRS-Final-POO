@@ -1,3 +1,5 @@
+package tps.tp4.modelo;
+
 import java.io.Serializable;
 
 public class Escalao implements Serializable {
