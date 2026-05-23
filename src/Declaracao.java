@@ -1,7 +1,9 @@
+
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 public class Declaracao implements Imprimivel, Serializable {
     private static final long serialVersionUID = 1L;
@@ -9,12 +11,14 @@ public class Declaracao implements Imprimivel, Serializable {
     private List<Rendimento> rendimentos;
     private List<Despesa> despesas;
     private int anoFiscal;
+    private EstadoDeclaracao estado;
 
-    public Declaracao(Contribuinte contribuinte,  int anoFiscal){
-        this.contribuinte = contribuinte;
+    public Declaracao(Contribuinte titular, int anoFiscal) {
+        this.contribuinte = titular;
         this.anoFiscal = anoFiscal;
         this.rendimentos = new ArrayList<>();
         this.despesas = new ArrayList<>();
+        this.estado = EstadoDeclaracao.RASCUNHO; // Inicia sempre como rascunho
     }
 
     public Contribuinte getContribuinte(){ return contribuinte; }
@@ -27,6 +31,8 @@ public class Declaracao implements Imprimivel, Serializable {
     }
     public int getAnoFiscal(){ return anoFiscal; }
 
+    public EstadoDeclaracao getEstado() { return estado; }
+
     public void setContribuinte(Contribuinte contribuinte) { this.contribuinte = contribuinte; }
 
     public void setRendimentos(List<Rendimento> rendimentos) { this.rendimentos = rendimentos; }
@@ -35,12 +41,22 @@ public class Declaracao implements Imprimivel, Serializable {
 
     public void setAnoFiscal(int anoFiscal) { this.anoFiscal = anoFiscal; }
 
-    public void adicionarRendimento(Rendimento r){
+    public void adicionarRendimento(Rendimento r) throws DeclaracaoJaSubmetidaException {
+        if (this.estado != EstadoDeclaracao.RASCUNHO) {
+            throw new DeclaracaoJaSubmetidaException("A declaração já foi submetida e não pode ser alterada.");
+        }
         rendimentos.add(r);
     }
 
-    public void adicionarDespesas(Despesa d){
+    public void adicionarDespesas(Despesa d) throws DeclaracaoJaSubmetidaException {
+        if (this.estado != EstadoDeclaracao.RASCUNHO) {
+            throw new DeclaracaoJaSubmetidaException("A declaração já foi submetida e não pode ser alterada.");
+        }
         despesas.add(d);
+    }
+
+    public void submeterDeclaracao() {
+        this.estado = EstadoDeclaracao.SUBMETIDA;
     }
 
     public double somarRendimentosBrutos(){

@@ -138,6 +138,7 @@ public class MenuPrincipal {
         System.out.println("2 - Adicionar Fatura (e-Fatura Manual)");
         System.out.println("3 - Importar e-Fatura (Ficheiro XML)");
         System.out.println("4 - Simular IRS Final (" + anoAtual + ")");
+        System.out.println("5 - Submeter Declaração (Bloquear Edição)");
         System.out.println("9 - Terminar Sessão (Logout)");
         System.out.println("=========================================");
 
@@ -148,6 +149,7 @@ public class MenuPrincipal {
             case 2: acaoAdicionarDespesa(); break;
             case 3: acaoImportarXML(); break;
             case 4: acaoSimularIRS(); break;
+            case 5: acaoSubmeterDeclaracao(); break;
             case 9:
                 System.out.println("A encerrar sessão de " + utilizadorLogado.getNome() + "...");
                 this.utilizadorLogado = null;
@@ -160,56 +162,86 @@ public class MenuPrincipal {
     }
 
     private void acaoAdicionarRendimento() {
-        System.out.println("\n--- ADICIONAR RENDIMENTO ---");
-        System.out.println("Categoria (1-Cat A | 2-Cat B | 3-Cat H): ");
-        int escolhaCat = teclado.lerInteiro("");
+        try {
+            System.out.println("\n--- ADICIONAR RENDIMENTO ---");
+            System.out.println("Categoria (1-Cat A | 2-Cat B | 3-Cat H): ");
+            int escolhaCat = teclado.lerInteiro("");
 
-        double valorBruto = teclado.lerDouble("Valor Bruto Total (€): ");
-        double retencao = teclado.lerDouble("Valor Retido na Fonte (€): ");
-        double segSocial = teclado.lerDouble("Descontos para a Segurança Social (€): ");
+            double valorBruto = teclado.lerDouble("Valor Bruto Total (€): ");
+            double retencao = teclado.lerDouble("Valor Retido na Fonte (€): ");
+            double segSocial = teclado.lerDouble("Descontos para a Segurança Social (€): ");
 
-        Rendimento rendimento;
-        switch (escolhaCat) {
-            case 2: rendimento = new RendimentoCategoriaB(valorBruto, retencao, segSocial); break;
-            case 3: rendimento = new RendimentoCategoriaH(valorBruto, retencao, segSocial); break;
-            default: rendimento = new RendimentoCategoriaA(valorBruto, retencao, segSocial);
+            Rendimento rendimento;
+            switch (escolhaCat) {
+                case 2: rendimento = new RendimentoCategoriaB(valorBruto, retencao, segSocial); break;
+                case 3: rendimento = new RendimentoCategoriaH(valorBruto, retencao, segSocial); break;
+                default: rendimento = new RendimentoCategoriaA(valorBruto, retencao, segSocial);
+            }
+            declarAtual.adicionarRendimento(rendimento);
+            System.out.println("Rendimento acoplado à sua declaração!");
+        } catch (DeclaracaoJaSubmetidaException e) {
+            System.out.println("❌ Erro: " + e.getMessage());
         }
-        declarAtual.adicionarRendimento(rendimento);
-        System.out.println("Rendimento acoplado à sua declaração!");
     }
 
     private void acaoAdicionarDespesa() {
-        System.out.println("\n--- INSERIR FATURA MANUAL ---");
-        String nifComerciante = teclado.lerTexto("NIF do Comerciante: ");
-        double valor = teclado.lerDouble("Valor Total (€): ");
+        try {
+            System.out.println("\n--- INSERIR FATURA MANUAL ---");
+            String nifComerciante = teclado.lerTexto("NIF do Comerciante: ");
+            double valor = teclado.lerDouble("Valor Total (€): ");
 
-        System.out.println("Tipo (1-Saúde | 2-Educação | 3-Habitação | 4-Geral): ");
-        int escolhaTipo = teclado.lerInteiro("");
+            System.out.println("Tipo (1-Saúde | 2-Educação | 3-Habitação | 4-Geral): ");
+            int escolhaTipo = teclado.lerInteiro("");
 
-        TipoDespesa tipo;
-        switch (escolhaTipo) {
-            case 1: tipo = TipoDespesa.SAUDE; break;
-            case 2: tipo = TipoDespesa.EDUCACAO; break;
-            case 3: tipo = TipoDespesa.HABITACAO; break;
-            default: tipo = TipoDespesa.GERAL;
+            TipoDespesa tipo;
+            switch (escolhaTipo) {
+                case 1: tipo = TipoDespesa.SAUDE; break;
+                case 2: tipo = TipoDespesa.EDUCACAO; break;
+                case 3: tipo = TipoDespesa.HABITACAO; break;
+                default: tipo = TipoDespesa.GERAL;
+            }
+
+            Despesa despesa = new Despesa(tipo, valor, nifComerciante);
+            declarAtual.adicionarDespesas(despesa);
+            System.out.println("Fatura registada com sucesso!");
+        } catch (DeclaracaoJaSubmetidaException e) {
+            System.out.println("❌ Erro: " + e.getMessage());
         }
-
-        Despesa despesa = new Despesa(tipo, valor, nifComerciante);
-        declarAtual.adicionarDespesas(despesa);
-        System.out.println("Fatura registada com sucesso!");
     }
 
     private void acaoImportarXML() {
-        System.out.println("\n--- A INICIAR IMPORTAÇÃO DO E-FATURA ---");
-        List<Despesa> faturasLidas = ImportadorXML.importarFaturas("faturas.xml");
+        try {
+            System.out.println("\n--- A INICIAR IMPORTAÇÃO DO E-FATURA ---");
+            String caminho = teclado.lerTexto("Introduza o caminho para o ficheiro XML das suas faturas: ");
+            List<Despesa> faturasLidas = ImportadorXML.importarFaturas(caminho);
 
-        if (faturasLidas.isEmpty()) {
-            System.out.println("Não foi possível importar faturas.");
-        } else {
-            for (Despesa d : faturasLidas) {
-                declarAtual.adicionarDespesas(d);
+            if (faturasLidas.isEmpty()) {
+                System.out.println("Não foi possível importar faturas.");
+            } else {
+                for (Despesa d : faturasLidas) {
+                    declarAtual.adicionarDespesas(d);
+                }
+                System.out.println("SUCESSO: " + faturasLidas.size() + " faturas associadas ao seu NIF!");
             }
-            System.out.println("SUCESSO: " + faturasLidas.size() + " faturas associadas ao seu NIF!");
+        } catch (DeclaracaoJaSubmetidaException e) {
+            System.out.println("❌ Erro: " + e.getMessage());
+        }
+    }
+
+    private void acaoSubmeterDeclaracao() {
+        if (declarAtual.getEstado() != EstadoDeclaracao.RASCUNHO) {
+            System.out.println("Esta declaração já se encontra no estado: " + declarAtual.getEstado());
+            return;
+        }
+
+        System.out.println("Atenção: Ao submeter a declaração, não poderá adicionar mais rendimentos ou faturas.");
+        int conf = teclado.lerInteiroComLimites("Confirmar submissão? (1-Sim | 2-Não): ", 1, 2);
+
+        if (conf == 1) {
+            declarAtual.submeterDeclaracao();
+            System.out.println("✅ Declaração submetida com sucesso! O seu estado agora é 'SUBMETIDA'.");
+        } else {
+            System.out.println("Operação cancelada.");
         }
     }
 

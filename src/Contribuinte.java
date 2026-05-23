@@ -41,8 +41,6 @@ public class Contribuinte implements Imprimivel, Serializable {
 
     public void setNome(String nome){ this.nome = nome; }
 
-    public void setNif(String nif){ this.nif = nif; }
-
     public void setEstadoCivil(EstadoCivil estadoCivil){ this.estadoCivil = estadoCivil; }
 
     @Override

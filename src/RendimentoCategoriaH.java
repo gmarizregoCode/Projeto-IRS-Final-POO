@@ -1,5 +1,5 @@
 public class RendimentoCategoriaH extends Rendimento {
-    private static final double DEDUCAO_FIXA = 4104.00;
+    private static final double DEDUCAO_FIXA = 4462.15;
 
     public RendimentoCategoriaH(double valorBruto, double retencaoFonte, double segurancaSocial) {
         super(CategoriaRendimento.H, valorBruto, retencaoFonte, segurancaSocial);
@@ -7,6 +7,6 @@ public class RendimentoCategoriaH extends Rendimento {
 
     @Override
     public double getRendimentoColetavel() {
-        return getValorBruto() - DEDUCAO_FIXA;
+        return Math.max(0, getValorBruto() - DEDUCAO_FIXA);
     }
 }

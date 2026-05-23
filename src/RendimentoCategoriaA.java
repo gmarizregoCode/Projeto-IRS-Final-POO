@@ -1,5 +1,5 @@
 public class RendimentoCategoriaA extends Rendimento {
-    private static final double DEDUCAO_FIXA = 4104.00;
+    private static final double DEDUCAO_FIXA = 4462.15;
 
     public RendimentoCategoriaA(double valorBruto, double retencaoFonte, double segurancaSocial) {
         super(CategoriaRendimento.A, valorBruto, retencaoFonte, segurancaSocial);
